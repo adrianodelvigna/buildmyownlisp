@@ -1,0 +1,3 @@
+#define Lispy_VERSION_MAJOR @lispy_VERSION_MAJOR@
+#define Lispy_VERSION_MINOR @lispy_VERSION_MINOR@
+#define Lispy_VERSION_PATCH @lispy_VERSION_PATCH@

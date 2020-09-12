@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "version.h"
-#include "mpc.h"
+#include "mpc/mpc.h"
 
 #ifdef _WIN32
 #include <string.h>

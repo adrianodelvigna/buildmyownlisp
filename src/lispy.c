@@ -29,6 +29,7 @@ void add_history(char *unused) {}
 
 int number_of_nodes(mpc_ast_t *ast)
 {
+    //TODO: add unit tests for this function
     if (ast->children_num == 0) { return 1; }
     if (ast->children_num >= 1)
     {
@@ -42,8 +43,25 @@ int number_of_nodes(mpc_ast_t *ast)
     return 0;
 }
 
+#define OPERATORS   \
+    OPERATOR(+)     \
+    OPERATOR(-)     \
+    OPERATOR(*)     \
+    OPERATOR(/)
+
+long eval_op_x_macros(long x, char *op, long y)
+{
+    //TODO: add unit tests for this function
+    fprintf(stderr, "Eval operator for: %li %s %li (*)\n", x, op, y);
+    #define OPERATOR(o) if (strcmp(op, #o) == 0) { return x o y; }
+    OPERATORS
+    #undef OP
+    return 0;
+}
+
 long eval_op(long x, char *op, long y)
 {
+    //TODO: add unit tests for this function
     fprintf(stderr, "Eval operator for: %li %s %li\n", x, op, y);
     if (strcmp(op, "+") == 0) { return x + y; }
     if (strcmp(op, "-") == 0) { return x - y; }
@@ -54,6 +72,7 @@ long eval_op(long x, char *op, long y)
 
 long eval(mpc_ast_t *ast)
 {
+    //TODO: add unit tests for this function
     fprintf(stderr, "Eval for: %s\n", ast->contents);
     if (strstr(ast->tag, "number"))
     {
@@ -66,7 +85,7 @@ long eval(mpc_ast_t *ast)
     int i = 3;
     while (strstr(ast->children[i]->tag, "expr"))
     {
-        x = eval_op(x, operator, eval(ast->children[i]));
+        x = eval_op_x_macros(x, operator, eval(ast->children[i]));
         i++;
     }
     

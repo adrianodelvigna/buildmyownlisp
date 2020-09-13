@@ -27,6 +27,52 @@ void add_history(char *unused) {}
 #include <editline/readline.h>
 #endif
 
+int number_of_nodes(mpc_ast_t *ast)
+{
+    if (ast->children_num == 0) { return 1; }
+    if (ast->children_num >= 1)
+    {
+        int total = 1;
+        for (int i = 0; i < ast->children_num; i++)
+        {
+            total += number_of_nodes(ast->children[i]);
+        }
+        return total;
+    }
+    return 0;
+}
+
+long eval_op(long x, char *op, long y)
+{
+    fprintf(stderr, "Eval operator for: %li %s %li\n", x, op, y);
+    if (strcmp(op, "+") == 0) { return x + y; }
+    if (strcmp(op, "-") == 0) { return x - y; }
+    if (strcmp(op, "*") == 0) { return x * y; }
+    if (strcmp(op, "/") == 0) { return x / y; }
+    return 0;
+}
+
+long eval(mpc_ast_t *ast)
+{
+    fprintf(stderr, "Eval for: %s\n", ast->contents);
+    if (strstr(ast->tag, "number"))
+    {
+        return atoi(ast->contents);
+    }
+    
+    char *operator = ast->children[1]->contents;
+    long x = eval(ast->children[2]);
+
+    int i = 3;
+    while (strstr(ast->children[i]->tag, "expr"))
+    {
+        x = eval_op(x, operator, eval(ast->children[i]));
+        i++;
+    }
+    
+    return x;
+}
+
 int main(int argc, char const *argv[])
 {
     mpc_parser_t *Number = mpc_new("number");
@@ -52,7 +98,12 @@ int main(int argc, char const *argv[])
         mpc_result_t result;
         if (mpc_parse("<stdin>", input, Lispy, &result))
         {
+            printf("Number of nodes: %d\n", number_of_nodes(result.output));
             mpc_ast_print(result.output);
+
+            long value = eval(result.output);
+            printf("\n-> %li\n", value);
+
             mpc_ast_delete(result.output);
         }
         else 

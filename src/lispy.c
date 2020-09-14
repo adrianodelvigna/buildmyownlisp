@@ -125,15 +125,16 @@ lval eval_op(lval x, char *op, lval y)
 lval eval(mpc_ast_t *ast)
 {
     //TODO: add unit tests for this function
-    fprintf(stderr, "Eval for: %s\n", ast->contents);
     if (strstr(ast->tag, "number"))
     {
+        fprintf(stderr, "Eval for: %s\n", ast->contents);
         errno = 0;
         long x = strtol(ast->contents, NULL, 10);
         return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
     }
     
     char *operator = ast->children[1]->contents;
+    fprintf(stderr, "Eval for: %s\n", operator);
     lval x = eval(ast->children[2]);
 
     int i = 3;

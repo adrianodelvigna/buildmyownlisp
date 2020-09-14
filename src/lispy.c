@@ -64,13 +64,13 @@ void lval_print(lval val)
         switch (val.err)
         {
         case LERR_DIV_ZERO:
-            printf("Error: Division by zero!");
+            fprintf(stderr, "Error: Division by zero!");
             break;
         case LERR_BAD_OP:
-            printf("Error: Invalid operator!");
+            fprintf(stderr, "Error: Invalid operator!");
             break;
         case LERR_BAD_NUM:
-            printf("Error: Invalid number!");
+            fprintf(stderr, "Error: Invalid number!");
             break;
         default:
             break;

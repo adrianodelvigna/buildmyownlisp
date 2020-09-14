@@ -27,6 +27,66 @@ void add_history(char *unused) {}
 #include <editline/readline.h>
 #endif
 
+typedef struct lval
+{
+    int type;
+    long num;
+    int err;
+} lval;
+enum lval_type { LVAL_NUM, LVAL_ERR };
+enum lval_err { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
+
+lval lval_num(long x)
+{
+    lval val;
+    val.type = LVAL_NUM;
+    val.num = x;
+    return val;
+}
+
+lval lval_err(int err)
+{
+    lval val;
+    val.type = LVAL_ERR;
+    val.err = err;
+    return val;
+}
+
+void lval_print(lval val)
+{
+    switch (val.type)
+    {
+    case LVAL_NUM:
+        printf("%li\n", val.num);
+        break;
+    case LVAL_ERR:
+
+        switch (val.err)
+        {
+        case LERR_DIV_ZERO:
+            printf("Error: Division by zero!");
+            break;
+        case LERR_BAD_OP:
+            printf("Error: Invalid operator!");
+            break;
+        case LERR_BAD_NUM:
+            printf("Error: Invalid number!");
+            break;
+        default:
+            break;
+        }
+    
+    default:
+        break;
+    }
+}
+
+void lval_println(lval val)
+{
+    lval_print(val);
+    putchar('\n');
+}
+
 int number_of_nodes(mpc_ast_t *ast)
 {
     //TODO: add unit tests for this function
@@ -43,49 +103,43 @@ int number_of_nodes(mpc_ast_t *ast)
     return 0;
 }
 
-#define OPERATORS   \
-    OPERATOR(+)     \
-    OPERATOR(-)     \
-    OPERATOR(*)     \
-    OPERATOR(/)
-
-long eval_op_x_macros(long x, char *op, long y)
+lval eval_op(lval x, char *op, lval y)
 {
     //TODO: add unit tests for this function
-    fprintf(stderr, "Eval operator for: %li %s %li (*)\n", x, op, y);
-    #define OPERATOR(o) if (strcmp(op, #o) == 0) { return x o y; }
-    OPERATORS
-    #undef OP
-    return 0;
+
+    if (x.type == LVAL_ERR) { return x; }
+    if (y.type == LVAL_ERR) { return y; }
+
+    fprintf(stderr, "Eval operator for: %li %s %li\n", x.num, op, y.num);
+    if (strcmp(op, "+") == 0) { return lval_num(x.num + y.num); }
+    if (strcmp(op, "-") == 0) { return lval_num(x.num - y.num); }
+    if (strcmp(op, "*") == 0) { return lval_num(x.num * y.num); }
+    if (strcmp(op, "/") == 0) { 
+        return y.num == 0
+        ? lval_err(LERR_DIV_ZERO)
+        : lval_num(x.num / y.num);
+    }
+    return lval_err(LERR_BAD_OP);
 }
 
-long eval_op(long x, char *op, long y)
-{
-    //TODO: add unit tests for this function
-    fprintf(stderr, "Eval operator for: %li %s %li\n", x, op, y);
-    if (strcmp(op, "+") == 0) { return x + y; }
-    if (strcmp(op, "-") == 0) { return x - y; }
-    if (strcmp(op, "*") == 0) { return x * y; }
-    if (strcmp(op, "/") == 0) { return x / y; }
-    return 0;
-}
-
-long eval(mpc_ast_t *ast)
+lval eval(mpc_ast_t *ast)
 {
     //TODO: add unit tests for this function
     fprintf(stderr, "Eval for: %s\n", ast->contents);
     if (strstr(ast->tag, "number"))
     {
-        return atoi(ast->contents);
+        errno = 0;
+        long x = strtol(ast->contents, NULL, 10);
+        return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
     }
     
     char *operator = ast->children[1]->contents;
-    long x = eval(ast->children[2]);
+    lval x = eval(ast->children[2]);
 
     int i = 3;
     while (strstr(ast->children[i]->tag, "expr"))
     {
-        x = eval_op_x_macros(x, operator, eval(ast->children[i]));
+        x = eval_op(x, operator, eval(ast->children[i]));
         i++;
     }
     
@@ -120,8 +174,8 @@ int main(int argc, char const *argv[])
             printf("Number of nodes: %d\n", number_of_nodes(result.output));
             mpc_ast_print(result.output);
 
-            long value = eval(result.output);
-            printf("\n-> %li\n", value);
+            lval value = eval(result.output);
+            lval_println(value);
 
             mpc_ast_delete(result.output);
         }

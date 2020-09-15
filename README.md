@@ -10,4 +10,4 @@ This is my project for https://buildyourownlisp.com book.
 
 # License
 
-Please check LICENSE file.
+Please check [LICENSE](LICENSE) file.

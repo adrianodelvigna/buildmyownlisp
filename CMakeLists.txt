@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 # set the project name, version, description, homepage and language
 project(lispy 
-    VERSION 0.0.2
+    VERSION 0.0.3
     DESCRIPTION "Build Your Own Lisp project"
     HOMEPAGE_URL "http://buildyourownlisp.com"
     LANGUAGES C
@@ -21,11 +21,23 @@ add_library(mpc vendor/mpc/mpc.c)
 add_executable(lispy 
     src/lispy.c
 )
+
 target_include_directories(lispy PUBLIC 
     "${PROJECT_BINARY_DIR}"         # for version.h
     "${PROJECT_SOURCE_DIR}/vendor"  # for thid-party dependencies
 )
-target_link_libraries(lispy PRIVATE 
-    edit                            # for readline and add_history
+
+target_link_libraries(lispy PRIVATE
     mpc                             # for MPC parsing features
 )
+
+if(${CMAKE_HOST_APPLE})
+target_link_libraries(lispy PRIVATE 
+    edit                            # for readline and add_history
+)
+elseif(${CMAKE_HOST_UNIX})
+target_link_libraries(lispy PRIVATE
+    readline		    	    # for readline
+    history			    # for add_history
+)
+endif()

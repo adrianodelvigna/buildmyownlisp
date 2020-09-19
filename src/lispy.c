@@ -22,9 +22,15 @@ char *readline(char *prompt)
 }
 
 void add_history(char *unused) {}
+#endif
 
-#else
+#ifdef __apple__
 #include <editline/readline.h>
+#endif
+
+#ifdef __linux__
+#include <readline/readline.h>
+#include <readline/history.h>
 #endif
 
 typedef struct lval
@@ -106,7 +112,6 @@ int number_of_nodes(mpc_ast_t *ast)
 lval eval_op(lval x, char *op, lval y)
 {
     //TODO: add unit tests for this function
-
     if (x.type == LVAL_ERR) { return x; }
     if (y.type == LVAL_ERR) { return y; }
 
